@@ -13,6 +13,7 @@ export default class App extends Component {
     imageName: '',
     page: 1,
     loading: false,
+    totalPages: null,
   };
 
   componentDidUpdate(_, prevState) {
@@ -41,6 +42,15 @@ export default class App extends Component {
           images: [...images, ...data.hits],
         };
       });
+      const totalPages = Math.ceil(data.totalHits / 15);
+      this.setState({
+        totalPages,
+      });
+      if (page >= totalPages) {
+        Notify.warning(
+          "We're sorry, but you've reached the end of search results."
+        );
+      }
     } finally {
       this.setState({
         loading: false,
@@ -61,15 +71,21 @@ export default class App extends Component {
   };
 
   render() {
-    const { images, loading } = this.state;
+    const { images, loading, totalPages, page } = this.state;
     const { handleSubmitForm, loadMore } = this;
+    const endList = page < totalPages;
     const isImages = images.length !== 0;
+
     return (
       <>
         <SearchBar onSubmit={handleSubmitForm} />
         <ImageGallery items={images} />
 
-        {loading ? <Loader /> : isImages && <Button onClick={loadMore} />}
+        {loading ? (
+          <Loader />
+        ) : (
+          endList && isImages && <Button onClick={loadMore} />
+        )}
       </>
     );
   }
